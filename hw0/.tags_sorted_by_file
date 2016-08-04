@@ -1,0 +1,32 @@
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+main	main.c	/^int main() {$/;"	f
+foo	map.c	/^int foo;$/;"	v
+main	map.c	/^int main(int argc, char *argv[]) {$/;"	f
+recur	map.c	/^int recur(int i) {$/;"	f
+stuff	map.c	/^int stuff = 7;$/;"	v
+main	temp.c	/^int main ()$/;"	f
+main	test.c	/^int main() {$/;"	f
+pointer	test.c	/^typedef unsigned char *pointer;$/;"	t	file:
+show_bytes	test.c	/^void show_bytes(pointer start, size_t len) {$/;"	f
+main	wc.c	/^int main(int argc, char *argv[]) {$/;"	f
+COUNT	wc_gnu.c	70;"	d	file:
+ccount	wc_gnu.c	/^     count_t ccount;$/;"	v
+count_t	wc_gnu.c	/^     typedef unsigned long count_t;  \/* Counter type *\/$/;"	t	file:
+counter	wc_gnu.c	/^     counter (char *file)$/;"	f
+errf	wc_gnu.c	/^     errf (char *fmt, ...)$/;"	f	file:
+error_print	wc_gnu.c	/^     error_print (int perr, char *fmt, va_list ap)$/;"	f	file:
+getword	wc_gnu.c	/^     getword (FILE *fp)$/;"	f
+isword	wc_gnu.c	/^     isword (unsigned char c)$/;"	f	file:
+lcount	wc_gnu.c	/^     count_t lcount;$/;"	v
+main	wc_gnu.c	/^     main (int argc, char **argv)$/;"	f
+perrf	wc_gnu.c	/^     perrf (char *fmt, ...)$/;"	f	file:
+report	wc_gnu.c	/^     report (char *file, count_t ccount, count_t wcount, count_t lcount)$/;"	f
+total_ccount	wc_gnu.c	/^     count_t total_ccount = 0;$/;"	v
+total_lcount	wc_gnu.c	/^     count_t total_lcount = 0;$/;"	v
+total_wcount	wc_gnu.c	/^     count_t total_wcount = 0;$/;"	v
+wcount	wc_gnu.c	/^     count_t wcount;$/;"	v

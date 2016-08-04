@@ -1,0 +1,3 @@
+all:
+	gcc main.c wc.c map.c -o word_count
+compile:
