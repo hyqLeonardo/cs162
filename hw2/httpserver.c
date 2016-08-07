@@ -39,21 +39,105 @@ int server_proxy_port;
  *      of files in the directory with links to each.
  *   4) Send a 404 Not Found response.
  */
-void handle_files_request(int fd) {
 
-  /* YOUR CODE HERE (Feel free to delete/modify the existing code below) */
+void get_path(char *server_dir, char *request_dir, char *path) {
+  strcpy(path, server_dir);
+  strcat(path, request_dir);
+}
 
-  struct http_request *request = http_request_parse(fd);
+void get_href(char *file_name, char *href) {
+  snprintf(href, 1024, "<a href=\"./%s\">%s</a>", file_name, file_name);
+  printf("file name is : %s\n", file_name);
+  printf("href is : %s\n", href);
+}
+
+void response_file(int fd, int open_fd, struct stat stat_buf, struct http_request *request) {
+  /* get file length */
+  char size_str[1024];
+  sprintf(size_str, "%d", (int)stat_buf.st_size);
 
   http_start_response(fd, 200);
-  http_send_header(fd, "Content-type", "text/html");
+  http_send_header(fd, "Content-Type", http_get_mime_type(request->path));
+  http_send_header(fd, "Content-Length", size_str);
+  http_end_headers(fd);
+  
+  /* now, transfer data inside file */
+  char data_buf[stat_buf.st_size + 1];
+  if (read(open_fd, data_buf, stat_buf.st_size) < 0) {  
+    perror("read file error");
+    exit(1);
+  }
+  /* http_send_string(fd, data_buf); */
+  http_send_data(fd, data_buf, stat_buf.st_size);
+}
+
+void response_page(int fd, char *path, struct http_request *request) {
+  DIR *pDir;
+  struct dirent *pDirent;
+
+  if ((pDir = opendir(path)) == NULL) {
+    perror("opendir error");
+    exit(1);
+  }
+
+  http_start_response(fd, 200);
+  http_send_header(fd, "Content-Type", "text/html");
   http_end_headers(fd);
   http_send_string(fd,
-      "<center>"
-      "<h1>Welcome to httpserver!</h1>"
-      "<hr>"
-      "<p>Nothing's here yet.</p>"
-      "</center>");
+	"<center>"
+	"<hr>"
+	"<h1>Index of path</h1>"
+	"<a href=\"../\">[parent directory]</a>"
+	"</center>");
+
+  while((pDirent = readdir(pDir)) != NULL) {
+	/* get the right html for a hyper link to file */
+	char *file_name = pDirent->d_name;
+	char href[1024];
+	get_href(file_name, href);
+	http_send_string(fd, href);
+  }
+ 
+  closedir(pDir);
+}
+
+void handle_files_request(int fd) {
+
+  struct http_request *request = http_request_parse(fd);
+  char path[strlen(server_files_directory) + strlen(request->path) + 1];
+  get_path(server_files_directory, request->path, path);
+  struct stat stat_buf;
+  int open_fd;
+
+  if ((open_fd = open(path, O_RDONLY)) >= 0) {
+    stat(path, &stat_buf); /* get the status buffer of path */
+    if (S_ISREG(stat_buf.st_mode)) { /* if it's a regular file */
+      response_file(fd, open_fd, stat_buf, request);      
+    } else if (S_ISDIR(stat_buf.st_mode)) { /* if it's a directory */
+      char index_path[strlen(path) + strlen("/index.html") + 1];
+      get_path(path, "/index.html", index_path);
+      int index_fd;
+      if ((index_fd = open(index_path, O_RDONLY)) >= 0) { /* if index.html is inside path*/
+	struct stat index_stat_buf;
+	stat(index_path, &index_stat_buf); /* get status buffer of index.html */
+	response_file(fd, index_fd, index_stat_buf, request);
+      } else { /* if index.html is not inside path */
+	response_page(fd, path, request);	  
+      }
+    } else { /* neither a file or a directory */
+      http_start_response(fd, 404);
+      http_send_string(fd,
+	"<center>"
+	"<h1>File not found</h1>"
+	"</center>");
+    }
+  } else { /* can't open specific path */
+     http_start_response(fd, 404);
+     http_send_string(fd,
+	"<center>"
+	"<h1>File not found</h1>"
+	"</center>");
+  }
 
 }
 
