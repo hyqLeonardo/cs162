@@ -46,18 +46,16 @@ void get_path(char *server_dir, char *request_dir, char *path) {
 }
 
 void get_href(char *file_name, char *href) {
-  snprintf(href, 1024, "<a href=\"./%s\">%s</a>", file_name, file_name);
-  printf("file name is : %s\n", file_name);
-  printf("href is : %s\n", href);
+  snprintf(href, 1024, "<p><a href=\"./%s\">%s</a></p>", file_name, file_name);
 }
 
-void response_file(int fd, int open_fd, struct stat stat_buf, struct http_request *request) {
+void response_file(int fd, int open_fd, char *path, struct stat stat_buf) {
   /* get file length */
   char size_str[1024];
   sprintf(size_str, "%d", (int)stat_buf.st_size);
 
   http_start_response(fd, 200);
-  http_send_header(fd, "Content-Type", http_get_mime_type(request->path));
+  http_send_header(fd, "Content-Type", http_get_mime_type(path));
   http_send_header(fd, "Content-Length", size_str);
   http_end_headers(fd);
   
@@ -71,7 +69,7 @@ void response_file(int fd, int open_fd, struct stat stat_buf, struct http_reques
   http_send_data(fd, data_buf, stat_buf.st_size);
 }
 
-void response_page(int fd, char *path, struct http_request *request) {
+void response_page(int fd, char *path) {
   DIR *pDir;
   struct dirent *pDirent;
 
@@ -87,15 +85,18 @@ void response_page(int fd, char *path, struct http_request *request) {
 	"<center>"
 	"<hr>"
 	"<h1>Index of path</h1>"
-	"<a href=\"../\">[parent directory]</a>"
-	"</center>");
+	"</center>"
+	"<p><a href=\"../\">[parent directory]</a></p>");
 
   while((pDirent = readdir(pDir)) != NULL) {
 	/* get the right html for a hyper link to file */
 	char *file_name = pDirent->d_name;
 	char href[1024];
 	get_href(file_name, href);
-	http_send_string(fd, href);
+	http_send_string(fd,
+	href);
+	http_send_string(fd,
+	"\n");
   }
  
   closedir(pDir);
@@ -112,7 +113,7 @@ void handle_files_request(int fd) {
   if ((open_fd = open(path, O_RDONLY)) >= 0) {
     stat(path, &stat_buf); /* get the status buffer of path */
     if (S_ISREG(stat_buf.st_mode)) { /* if it's a regular file */
-      response_file(fd, open_fd, stat_buf, request);      
+      response_file(fd, open_fd, path, stat_buf);      
     } else if (S_ISDIR(stat_buf.st_mode)) { /* if it's a directory */
       char index_path[strlen(path) + strlen("/index.html") + 1];
       get_path(path, "/index.html", index_path);
@@ -120,9 +121,9 @@ void handle_files_request(int fd) {
       if ((index_fd = open(index_path, O_RDONLY)) >= 0) { /* if index.html is inside path*/
 	struct stat index_stat_buf;
 	stat(index_path, &index_stat_buf); /* get status buffer of index.html */
-	response_file(fd, index_fd, index_stat_buf, request);
+	response_file(fd, index_fd, index_path, index_stat_buf);
       } else { /* if index.html is not inside path */
-	response_page(fd, path, request);	  
+	response_page(fd, path);	  
       }
     } else { /* neither a file or a directory */
       http_start_response(fd, 404);
