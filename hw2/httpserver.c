@@ -49,6 +49,20 @@ void get_href(char *file_name, char *href) {
   snprintf(href, 1024, "<p><a href=\"./%s\">%s</a></p>", file_name, file_name);
 }
 
+char *get_ip(char *host_name) {
+  struct hostent *host_buf;
+  struct in_addr **addr_list;
+
+  if ((host_buf = gethostbyname(host_name)) == NULL) {
+    perror("gethostbyname error");
+    exit(1);
+  }
+
+  addr_list = (struct in_addr **)host_buf->h_addr_list;
+
+  return inet_ntoa(*addr_list[0]); 
+}
+
 void response_file(int fd, int open_fd, char *path, struct stat stat_buf) {
   /* get file length */
   char size_str[1024];
@@ -154,15 +168,27 @@ void handle_files_request(int fd) {
  *   +--------+     +------------+     +--------------+
  */
 void handle_proxy_request(int fd) {
+  /*
+  struct http_request *request = http_request_parse(fd);
 
-  /* YOUR CODE HERE */
+  char *ip = get_ip(server_proxy_hostname);
+  struct sockaddr_in proxy_address;
+  size_t proxy_address_length = sizeof(proxy_address);
+  int proxy_socket_number;
+
+  *proxy_socket_number = socket(PF_INET, SOCK_STREAM, 0);
+  if (*proxy_socket_number == -1) {
+    perror("Failed to create a new socket");
+    exit(errno);
+  }
+  */
 
 }
 
 /*
  * Opens a TCP stream socket on all interfaces with port number PORTNO. Saves
  * the fd number of the server socket in *socket_number. For each accepted
- * connection, calls request_handler with the accepted fd number.
+ * ion, calls request_handler with the accepted fd number.
  */
 void serve_forever(int *socket_number, void (*request_handler)(int)) {
 
